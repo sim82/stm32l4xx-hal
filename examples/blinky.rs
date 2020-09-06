@@ -24,9 +24,9 @@ use core::fmt::Write;
 
 #[entry]
 fn main() -> ! {
-    let mut hstdout = hio::hstdout().unwrap();
+    //let mut hstdout = hio::hstdout().unwrap();
 
-    writeln!(hstdout, "Hello, world!").unwrap();
+    //writeln!(hstdout, "Hello, world!").unwrap();
 
     let cp = cortex_m::Peripherals::take().unwrap();
     let dp = hal::stm32::Peripherals::take().unwrap();
@@ -45,18 +45,18 @@ fn main() -> ! {
     // let mut gpioc = dp.GPIOC.split(&mut rcc.ahb2);
     // let mut led = gpioc.pc13.into_push_pull_output(&mut gpioc.afrh);
 
-    let mut gpiob = dp.GPIOB.split(&mut rcc.ahb2);
+    let mut gpiob = dp.GPIOA.split(&mut rcc.ahb2);
     let mut led = gpiob
-        .pb3
+        .pa5
         .into_push_pull_output(&mut gpiob.moder, &mut gpiob.otyper);
 
     let mut timer = Delay::new(cp.SYST, clocks);
     loop {
         // block!(timer.wait()).unwrap();
-        timer.delay_ms(1000 as u32);
+        timer.delay_ms(200 as u32);
         led.set_high();
         // block!(timer.wait()).unwrap();
-        timer.delay_ms(1000 as u32);
+        timer.delay_ms(200 as u32);
         led.set_low();
     }
 }

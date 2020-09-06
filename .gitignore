@@ -1,3 +1,19 @@
-/target
-**/*.rs.bk
 Cargo.lock
+**/*.rs.bk
+.#*
+.gdb_history
+Cargo.lock
+target/
+
+# editor files
+.vscode/*
+!.vscode/*.md
+!.vscode/*.svd
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/extensions.json
+
+#temporary files
+.DS_Store
+*.swp
+thumbs.db
