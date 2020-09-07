@@ -36,28 +36,89 @@ fn main() -> ! {
     let mut pwr = dp.PWR.constrain(&mut rcc.apb1r1);
 
     // Try a different clock configuration
-    let clocks = rcc.cfgr.hclk(8.mhz()).freeze(&mut flash.acr, &mut pwr);
-    // let clocks = rcc.cfgr
-    //     .sysclk(64.mhz())
-    //     .pclk1(32.mhz())
-    //     .freeze(&mut flash.acr);
+    // let clocks = rcc.cfgr.freeze(&mut flash.acr, &mut pwr);
+    // let clocks = rcc.cfgr.hclk(32.mhz()).freeze(&mut flash.acr, &mut pwr);
+    let clocks = rcc
+        .cfgr
+        .sysclk(80.mhz())
+        .pclk1(80.mhz())
+        .pclk2(80.mhz())
+        .freeze(&mut flash.acr, &mut pwr);
 
     // let mut gpioc = dp.GPIOC.split(&mut rcc.ahb2);
     // let mut led = gpioc.pc13.into_push_pull_output(&mut gpioc.afrh);
 
-    let mut gpiob = dp.GPIOA.split(&mut rcc.ahb2);
-    let mut led = gpiob
+    let mut gpioa = dp.GPIOA.split(&mut rcc.ahb2);
+    let mut led = gpioa
         .pa5
-        .into_push_pull_output(&mut gpiob.moder, &mut gpiob.otyper);
+        .into_push_pull_output(&mut gpioa.moder, &mut gpioa.otyper);
+    let mut pa6 = gpioa
+        .pa6
+        .into_push_pull_output(&mut gpioa.moder, &mut gpioa.otyper);
 
     let mut timer = Delay::new(cp.SYST, clocks);
+    let data = [0b10101010u8, 0b01010101u8, 0b10000000u8, 0b10001000u8];
+    loop {
+        for (i, d) in data.iter().enumerate() {
+            if i % 2 == 0 {
+                pa6.set_low();
+            } else {
+                pa6.set_high();
+            }
+            let mut d = *d;
+            for j in 0..8 {
+                if d & (0x1 as u8) == 0x1 {
+                    led.set_high();
+                } else {
+                    led.set_low();
+                }
+                d = d >> 1;
+            }
+        }
+    }
+
     loop {
         // block!(timer.wait()).unwrap();
-        timer.delay_ms(200 as u32);
-        led.set_high();
+        // timer.delay_ms(200 as u32);
+        led.set_high().unwrap();
+        pa6.set_high().unwrap();
+        led.set_low().unwrap();
+        pa6.set_low().unwrap();
+        led.set_high().unwrap();
+        pa6.set_high().unwrap();
+        led.set_low().unwrap();
+        pa6.set_low().unwrap();
+        led.set_high().unwrap();
+        pa6.set_high().unwrap();
+        led.set_low().unwrap();
+        pa6.set_low().unwrap();
+        led.set_high().unwrap();
+        pa6.set_high().unwrap();
+        led.set_low().unwrap();
+        pa6.set_low().unwrap();
+        // led.set_high().unwrap();
+        // led.set_low().unwrap();
+        // led.set_high().unwrap();
+        // led.set_low().unwrap();
+        // led.set_high().unwrap();
+        // led.set_low().unwrap();
+
+        // pa6.set_high().unwrap();
         // block!(timer.wait()).unwrap();
-        timer.delay_ms(200 as u32);
-        led.set_low();
+        // timer.delay_ms(200 as u32);
+        // pa6.set_low().unwrap();
+        // led.set_high();
+        // // block!(timer.wait()).unwrap();
+        // // timer.delay_ms(200 as u32);
+        // led.set_low();
+        // led.set_high();
+        // // block!(timer.wait()).unwrap();
+        // // timer.delay_ms(200 as u32);
+        // led.set_low();
+        // led.set_high();
+        // // block!(timer.wait()).unwrap();
+        // // timer.delay_ms(200 as u32);
+        // led.set_low();
     }
 }
 

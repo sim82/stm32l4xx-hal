@@ -53,7 +53,9 @@
             "args": [
                 "build",
                 "--examples",
-                "--release"
+                "--release",
+                "--features",
+                "stm32l4x6"
             ],
             "problemMatcher": [
                 "$rustc"
