@@ -37,15 +37,20 @@ fn main() -> ! {
     let mut pwr = dp.PWR.constrain(&mut rcc.apb1r1);
 
     // Try a different clock configuration
-    let clocks = rcc.cfgr.freeze(&mut flash.acr, &mut pwr);
-    // let clocks = rcc.cfgr.hclk(32.mhz()).freeze(&mut flash.acr, &mut pwr);
+    //let clocks = rcc.cfgr.freeze(&mut flash.acr, &mut pwr);
+    let clocks = rcc
+        .cfgr
+        .sysclk(80.mhz())
+        .pclk1(80.mhz())
+        .pclk2(80.mhz())
+        .freeze(&mut flash.acr, &mut pwr);
     // let clocks = rcc
     //     .cfgr
+    //     .hclk(48.mhz())
     //     .sysclk(80.mhz())
-    //     .pclk1(80.mhz())
-    //     .pclk2(80.mhz())
+    //     .pclk1(24.mhz())
+    //     .pclk2(24.mhz())
     //     .freeze(&mut flash.acr, &mut pwr);
-
     // let mut gpioc = dp.GPIOC.split(&mut rcc.ahb2);
     // let mut led = gpioc.pc13.into_push_pull_output(&mut gpioc.afrh);
 
@@ -249,7 +254,37 @@ fn main() -> ! {
     i2c.write_read(dac_addr, &[0x82, 0x00], &mut read_buf[..1]); // 16.505107950,223,0x9A,0x82,Write,ACK
                                                                  // 16.505251950,223,0x9A,0x00,Write,ACK
     led.set_low();
-    loop {}
+    let mut lrclk_in = gpioa
+        .pa9
+        .into_floating_input(&mut gpioa.moder, &mut gpioa.pupdr);
+
+    let mut bclk_in = gpioa
+        .pa8
+        .into_floating_input(&mut gpioa.moder, &mut gpioa.pupdr);
+
+    let mut data_out = gpioa
+        .pa10
+        .into_push_pull_output(&mut gpioa.moder, &mut gpioa.otyper);
+
+    let mut data = 0u16;
+    loop {
+        for inc in 200..400 {
+            let mut dtmp = data;
+            data += inc;
+            while lrclk_in.is_low().unwrap() {}
+            for i in 0..16 {
+                while bclk_in.is_low().unwrap() {}
+
+                if dtmp & (0b1000000000000000 >> i) != 0 {
+                    data_out.set_high();
+                } else {
+                    data_out.set_low();
+                }
+
+                while bclk_in.is_high().unwrap() {}
+            }
+        }
+    }
 }
 
 #[exception]
