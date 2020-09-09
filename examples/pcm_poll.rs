@@ -70,16 +70,16 @@ fn main() -> ! {
 
     let mut gpiob = dp.GPIOB.split(&mut rcc.ahb2);
     let mut scl = gpiob
-        .pb8
+        .pb6
         .into_open_drain_output(&mut gpiob.moder, &mut gpiob.otyper);
     scl.internal_pull_up(&mut gpiob.pupdr, true);
-    let scl = scl.into_af4(&mut gpiob.moder, &mut gpiob.afrh);
+    let scl = scl.into_af4(&mut gpiob.moder, &mut gpiob.afrl);
 
     let mut sda = gpiob
-        .pb9
+        .pb7
         .into_open_drain_output(&mut gpiob.moder, &mut gpiob.otyper);
     sda.internal_pull_up(&mut gpiob.pupdr, true);
-    let sda = sda.into_af4(&mut gpiob.moder, &mut gpiob.afrh);
+    let sda = sda.into_af4(&mut gpiob.moder, &mut gpiob.afrl);
 
     let mut i2c = I2c::i2c1(dp.I2C1, (scl, sda), 100.khz(), clocks, &mut rcc.apb1r1);
 
@@ -254,17 +254,18 @@ fn main() -> ! {
     i2c.write_read(dac_addr, &[0x82, 0x00], &mut read_buf[..1]); // 16.505107950,223,0x9A,0x82,Write,ACK
                                                                  // 16.505251950,223,0x9A,0x00,Write,ACK
     led.set_low();
-    let mut lrclk_in = gpioa
-        .pa9
-        .into_floating_input(&mut gpioa.moder, &mut gpioa.pupdr);
+    let mut lrclk_in = gpiob
+        .pb9
+        .into_floating_input(&mut gpiob.moder, &mut gpiob.pupdr);
 
-    let mut bclk_in = gpioa
-        .pa8
-        .into_floating_input(&mut gpioa.moder, &mut gpioa.pupdr);
+    let mut bclk_in = gpiob
+        .pb10
+        .into_floating_input(&mut gpiob.moder, &mut gpiob.pupdr);
 
-    let mut data_out = gpioa
-        .pa10
-        .into_push_pull_output(&mut gpioa.moder, &mut gpioa.otyper);
+    let mut gpioc = dp.GPIOC.split(&mut rcc.ahb2);
+    let mut data_out = gpioc
+        .pc3
+        .into_push_pull_output(&mut gpioc.moder, &mut gpioc.otyper);
 
     let mut data = 0u16;
     loop {
