@@ -279,25 +279,41 @@ fn main() -> ! {
     // let sai1 = dp.SAI1;
     // let cha = sai1.cha;
 
-    dp.SAI1
-        .cha
-        .cr1
-        .write(|w| w.mode().slave_tx().lsbfirst().msb_first().ds().bit16());
-    dp.SAI1.cha.frcr.write(|w| unsafe {
-        w.frl()
-            .bits(31)
-            .fsall()
-            .bits(15)
-            .fsdef()
-            .set_bit()
-            .fspol()
-            .rising_edge()
+    // setup CR1
+    dp.SAI1.cha.cr1.write(|w| {
+        w.lsbfirst()
+            .msb_first() // big endian
+            .ds()
+            .bit16() // DS = 16bit
+            .mode()
+            .slave_tx() // slave tx
     });
-    dp.SAI1
-        .cha
-        .slotr
-        .write(|w| unsafe { w.nbslot().bits(1).sloten().bits(0b11).slotsz().bit16() });
-    // dp.SAI1.cha.cr1.write(|w| w.;
+
+    // setup CR2
+    dp.SAI1.cha.cr2.write(
+        |w| w.fth().quarter2(), // threshold half
+    );
+    // setup frcr
+    dp.SAI1.cha.frcr.write(|w| unsafe {
+        w
+            //.fspol()            .rising_edge() // FS is active high
+            .fsdef()
+            .set_bit() // FS is start of frame and channel indication
+            .fsall()
+            .bits(15) // FS high for half frame
+            .frl()
+            .bits(31) // frame is 32bits
+    });
+
+    // setup slotr
+    dp.SAI1.cha.slotr.write(|w| unsafe {
+        w.sloten()
+            .bits(0b11) // enable slots 0, 1
+            .nbslot()
+            .bits(1) // two slots
+            .slotsz()
+            .bit16() // 16bit per slot
+    });
 
     led.set_high();
     timer.delay_ms(100u32);
@@ -305,13 +321,33 @@ fn main() -> ! {
     //     dp.SAI1.cha.dr.write(|w| unsafe { w.data().bits(i as u32) })
     // }
 
-    while dp.SAI1.cha.cr2.read().fth().is_empty() {
+    if dp.SAI1.cha.sr.read().wckcfg().is_wrong() {
+        panic!("bad wckcfg");
+    }
+    if dp.SAI1.cha.sr.read().ovrudr().is_overrun() {
+        panic!("overrun");
+    }
+
+    // dp.SAI1
+    //     .cha
+    //     .dr
+    //     .write(|w| unsafe { w.data().bits(0b1010101010101010) });
+    while dp.SAI1.cha.sr.read().flvl().is_empty() {
+        // for _ in 0..8 {
+        led.set_high();
         dp.SAI1
             .cha
             .dr
-            .write(|w| unsafe { w.data().bits(0b1010101010101010) })
+            .write(|w| unsafe { w.data().bits(0b1010101010101010) });
+        led.set_low();
     }
-    led.set_low();
+
+    // while dp.SAI1.cha.cr2.read().fth().is_empty() {
+    //     dp.SAI1
+    //         .cha
+    //         .dr
+    //         .write(|w| unsafe { w.data().bits(0b1010101010101010) });
+    // }
 
     dp.SAI1.cha.cr1.write(|w| w.saien().enabled());
     loop {}
