@@ -207,7 +207,7 @@ fn main() -> ! {
                                                                  // 16.490716350,163,0x9A,0x00,Write,ACK
     i2c.write_read(dac_addr, &[0x80], &mut read_buf[..1]); // 16.491087600,165,0x9A,0x80,Write,ACK
                                                            // 16.491407600,166,0x9B,0x00,Read,NAK
-    i2c.write_read(dac_addr, &[0xe8, 0x30], &mut read_buf[..1]); // 16.491763600,168,0x9A,0x8E,Write,ACK
+    i2c.write_read(dac_addr, &[0x8e, 0x30], &mut read_buf[..1]); // 16.491763600,168,0x9A,0x8E,Write,ACK
                                                                  // 16.491907600,168,0x9A,0x30,Write,ACK
     i2c.write_read(dac_addr, &[0x80], &mut read_buf[..1]); // 16.492270300,170,0x9A,0x80,Write,ACK
                                                            // 16.492590300,171,0x9B,0x00,Read,NAK
